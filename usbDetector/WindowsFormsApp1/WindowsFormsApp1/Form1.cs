@@ -27,6 +27,8 @@ namespace WindowsFormsApp1
         public const int DBT_DEVNODES_CHANGED = 0x0007;
         public const int DBT_QUERYCHANGECONFIG = 0x0017;
         public const int DBT_USERDEFINED = 0xFFFF;
+        public string srcPath = null;
+        public string dstPath = null;
 
         public Form1()
         {
@@ -50,10 +52,13 @@ namespace WindowsFormsApp1
                             {
                                 if (drive.DriveType == DriveType.Removable)
                                 {
+                                    dstPath = drive.Name.ToString();
                                     richTextBox1.AppendText("U盘已插入，盘符是" + drive.Name.ToString() + "\r\n");
+                                    txb_dstPath.Text = dstPath;
                                     break;
                                 }
                             }
+                            copy();
                             break;
                         case DBT_CONFIGCHANGECANCELED:
                             MessageBox.Show("2");
@@ -71,7 +76,7 @@ namespace WindowsFormsApp1
                             MessageBox.Show("6");
                             break;
                         case DBT_DEVICEREMOVECOMPLETE:
-                            this.richTextBox1.AppendText("U盘已卸载");
+                            richTextBox1.AppendText("U盘已卸载");
                             break;
                         case DBT_DEVICEREMOVEPENDING:
                             MessageBox.Show("7");
@@ -80,7 +85,7 @@ namespace WindowsFormsApp1
                             MessageBox.Show("8");
                             break;
                         case DBT_DEVNODES_CHANGED:
-                            MessageBox.Show("9");
+                            //MessageBox.Show("9");
                             break;
                         case DBT_QUERYCHANGECONFIG:
                             MessageBox.Show("10");
@@ -105,5 +110,36 @@ namespace WindowsFormsApp1
         {
 
         }
+
+        private void Btn_src_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fdg = new OpenFileDialog();
+            fdg.Title = "请选择需要复制的文件";
+            fdg.Filter = "二进制文件(*.bin)|*.bin|所有文件(*.*)|*.*";
+            if(fdg.ShowDialog() == DialogResult.OK)
+            {
+                srcPath = fdg.FileName;
+            }
+            txb_srcPath.Text = srcPath;
+        }
+
+        private void Btn_dst_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+            folderBrowser.ShowDialog();
+            dstPath = folderBrowser.SelectedPath;
+            txb_dstPath.Text = dstPath;
+        }
+
+
+        private void copy()
+        {
+            string fileName = srcPath.Split('\\').Last();//获取文件名
+            string dstFile = Path.Combine(dstPath, fileName);
+
+            File.Copy(srcPath, dstFile, true);
+            MessageBox.Show("copy success");
+        }
+
     }
 }
