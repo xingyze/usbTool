@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +16,7 @@ namespace WindowsFormsApp1
     {
         //定义usb事件常量  
         public const int WM_DEVICECHANGE = 0x219;
+        public const int WM_CLOSE = 0x0010;
         public const int DBT_DEVICEARRIVAL = 0x8000;
         public const int DBT_CONFIGCHANGECANCELED = 0x0019;
         public const int DBT_CONFIGCHANGED = 0x0018;
@@ -30,6 +32,11 @@ namespace WindowsFormsApp1
         public string srcPath = null;
         public string dstPath = null;
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindow(string a, string b);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr PostMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
         public Form1()
         {
             InitializeComponent();
@@ -58,7 +65,10 @@ namespace WindowsFormsApp1
                                     break;
                                 }
                             }
-                            copy();
+                            if (dstPath != null)
+                            {
+                                copy();
+                            }
                             break;
                         case DBT_CONFIGCHANGECANCELED:
                             MessageBox.Show("2");
@@ -77,6 +87,11 @@ namespace WindowsFormsApp1
                             break;
                         case DBT_DEVICEREMOVECOMPLETE:
                             richTextBox1.AppendText("U盘已卸载");
+                            IntPtr ptr1 = FindWindow(null, "usb tool");
+                            if (ptr1 != IntPtr.Zero)
+                            {
+                                PostMessage(ptr1, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);//close message box
+                            }
                             break;
                         case DBT_DEVICEREMOVEPENDING:
                             MessageBox.Show("7");
@@ -138,7 +153,7 @@ namespace WindowsFormsApp1
             string dstFile = Path.Combine(dstPath, fileName);
 
             File.Copy(srcPath, dstFile, true);
-            MessageBox.Show("copy success");
+            MessageBox.Show("copy success", "usb tool");
         }
 
     }
